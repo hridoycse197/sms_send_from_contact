@@ -2,6 +2,7 @@
     package="com.example.smssender">
       <uses-permission android:name="android.permission.SEND_SMS"/>
       <uses-permission android:name="android.permission.READ_CONTACTS"/>
+      <uses-permission android:name="android.permission.READ_SMS"/>
       <queries>
     <intent>
         <action android:name="android.intent.action.SENDTO" />
@@ -12,6 +13,8 @@
         android:label="smssender"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+
+        
        
         <activity
             android:name=".MainActivity"

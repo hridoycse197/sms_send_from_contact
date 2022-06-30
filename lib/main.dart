@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+
 import 'package:smssender/contact_page.dart';
 import 'package:smssender/controllerpage.dart';
+import 'package:smssender/message_screen.dart';
 import 'package:telephony/telephony.dart';
 
 void main() {
@@ -61,6 +63,9 @@ class _MyAppState extends State<MyHomePage> {
 
   Future<void> _sendSMS(String recipients) async {
     bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
+    Future<String?> simState = telephony.networkOperator;
+    print(simState);
+
     if (!permissionsGranted!) {
       await Permission.sms.request();
     } else {
@@ -109,13 +114,38 @@ class _MyAppState extends State<MyHomePage> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          onPressed: () async {
-            Navigator.of(context).push(MaterialPageRoute(
-              builder: (context) => ContactPage(),
-            ));
-          },
-          child: Icon(Icons.add),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: Row(
+          children: [
+            FloatingActionButton(
+              backgroundColor: Colors.red,
+              onPressed: () async {
+                var permissionMessage = await Permission.sms.status;
+                if (!permissionMessage.isGranted) {
+                  await Permission.sms.request();
+                } else if (permissionMessage.isGranted) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => MessagePage(),
+                  ));
+                }
+              },
+              child: Icon(Icons.message),
+            ),
+            FloatingActionButton(
+              onPressed: () async {
+                var permission = await Permission.contacts.status;
+                var permissionMessage = await Permission.sms.status;
+                if (!permission.isGranted) {
+                  await Permission.contacts.request();
+                } else if (permission.isGranted) {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => ContactPage(),
+                  ));
+                }
+              },
+              child: Icon(Icons.phone),
+            ),
+          ],
         ),
         appBar: AppBar(
           title: const Text('SMS/MMS Example'),

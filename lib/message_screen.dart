@@ -3,22 +3,25 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:smssender/main.dart';
+import 'package:telephony/telephony.dart';
 
 import 'controllerpage.dart';
 
-class ContactPage extends StatefulWidget {
-  ContactPage({Key? key}) : super(key: key);
+class MessagePage extends StatefulWidget {
+  MessagePage({Key? key}) : super(key: key);
   final ContactController contactController = Get.find();
-
+  late List<SmsMessage> messages;
+  final Telephony telephony = Telephony.instance;
   @override
-  State<ContactPage> createState() => _ContactPageState();
+  State<MessagePage> createState() => _MessagePageState();
 }
 
-class _ContactPageState extends State<ContactPage> {
+class _MessagePageState extends State<MessagePage> {
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    _getMessage();
   }
 
   @override
@@ -36,7 +39,7 @@ class _ContactPageState extends State<ContactPage> {
       ),
       body: SafeArea(
           child: FutureBuilder(
-              future: getcontact(),
+              future: _getMessage(),
               builder: (context, AsyncSnapshot snapshot) {
                 if (snapshot.hasData == null) {
                   return Center(child: CircularProgressIndicator());
@@ -44,25 +47,20 @@ class _ContactPageState extends State<ContactPage> {
                   return ListView.builder(
                     itemCount: snapshot.data!.length,
                     itemBuilder: (BuildContext context, int index) {
-                      Contact contact = snapshot.data[index];
+                      SmsMessage contact = snapshot.data[index];
 
                       return GestureDetector(
-                        onTap: () {
-                          if (widget.contactController.contacts
-                              .contains(contact.phones[0])) {
-                            print('Number already added');
-                          } else {
-                            widget.contactController.add(contact.phones[0]);
-
-                            print(contact.phones[0] + ' added');
-                          }
-                        },
+                        onTap: () {},
                         child: Card(
                           elevation: 1,
                           child: ListTile(
+                            trailing: Icon(
+                              Icons.check,
+                              color: Colors.red,
+                            ),
                             leading: CircleAvatar(child: Icon(Icons.man)),
-                            title: Text(contact.displayName),
-                            subtitle: Text(contact.phones[0]),
+                            title: Text(contact.address.toString()),
+                            subtitle: Text(contact.body.toString()),
                           ),
                         ),
                       );
@@ -73,8 +71,7 @@ class _ContactPageState extends State<ContactPage> {
     );
   }
 
-  Future<List> getcontact() async {
-    print(FastContacts.allContacts);
-    return await FastContacts.allContacts;
+  Future<List<SmsMessage>?> _getMessage() async {
+    return await widget.telephony.getSentSms();
   }
 }
