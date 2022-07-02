@@ -8,6 +8,8 @@ import 'package:smssender/controllerpage.dart';
 import 'package:smssender/message_screen.dart';
 import 'package:telephony/telephony.dart';
 
+import 'create_group.dart';
+
 void main() {
   runApp(MyApp());
 }
@@ -47,9 +49,9 @@ class _MyAppState extends State<MyHomePage> {
   String? _message, body;
   String _canSendSMSMessage = 'Check is not run.';
   final Telephony telephony = Telephony.instance;
-
   bool sendDirect = true;
   final ContactController contactController = Get.put(ContactController());
+
   @override
   void initState() {
     super.initState();
@@ -152,6 +154,20 @@ class _MyAppState extends State<MyHomePage> {
         ),
         body: ListView(
           children: <Widget>[
+            SizedBox(
+              height: 20,
+            ),
+            ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => Creategroup(),
+                    ),
+                  );
+                },
+                icon: Icon(Icons.group),
+                label: Text('Create Group')),
             if (contactController.contacts.isEmpty)
               const SizedBox(height: 0)
             else
