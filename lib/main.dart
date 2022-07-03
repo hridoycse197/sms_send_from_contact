@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -45,6 +46,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyHomePage> {
+  static const platform = MethodChannel('sendSms');
   late TextEditingController _controllerPeople, _controllerMessage;
   String? _message, body;
   String _canSendSMSMessage = 'Check is not run.';
@@ -63,15 +65,17 @@ class _MyAppState extends State<MyHomePage> {
     _controllerMessage = TextEditingController();
   }
 
-  Future<void> _sendSMS(String recipients) async {
-    bool? permissionsGranted = await telephony.requestPhoneAndSmsPermissions;
-    Future<String?> simState = telephony.networkOperator;
-    print(simState);
-
-    if (!permissionsGranted!) {
-      await Permission.sms.request();
-    } else {
-      telephony.sendSms(to: recipients, message: _controllerMessage.text);
+  Future<Null> sendSms() async {
+    print("SendSMS");
+    try {
+      final String result = await platform.invokeMethod(
+          'send', <String, dynamic>{
+        "phone": "+8801768003197",
+        "msg": "Hello! I'm sent programatically."
+      }); //Replace a 'X' with 10 digit phone number
+      print(result);
+    } on PlatformException catch (e) {
+      print(e.toString());
     }
   }
 
@@ -117,37 +121,19 @@ class _MyAppState extends State<MyHomePage> {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        floatingActionButton: Row(
-          children: [
-            FloatingActionButton(
-              backgroundColor: Colors.red,
-              onPressed: () async {
-                var permissionMessage = await Permission.sms.status;
-                if (!permissionMessage.isGranted) {
-                  await Permission.sms.request();
-                } else if (permissionMessage.isGranted) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => MessagePage(),
-                  ));
-                }
-              },
-              child: Icon(Icons.message),
-            ),
-            FloatingActionButton(
-              onPressed: () async {
-                var permission = await Permission.contacts.status;
-                var permissionMessage = await Permission.sms.status;
-                if (!permission.isGranted) {
-                  await Permission.contacts.request();
-                } else if (permission.isGranted) {
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => ContactPage(),
-                  ));
-                }
-              },
-              child: Icon(Icons.phone),
-            ),
-          ],
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.red,
+          onPressed: () async {
+            var permissionMessage = await Permission.sms.status;
+            if (!permissionMessage.isGranted) {
+              await Permission.sms.request();
+            } else if (permissionMessage.isGranted) {
+              Navigator.of(context).push(MaterialPageRoute(
+                builder: (context) => MessagePage(),
+              ));
+            }
+          },
+          child: Icon(Icons.message),
         ),
         appBar: AppBar(
           title: const Text('SMS/MMS Example'),
@@ -234,7 +220,7 @@ class _MyAppState extends State<MyHomePage> {
                       (states) => const EdgeInsets.symmetric(vertical: 16)),
                 ),
                 onPressed: () {
-                  _send();
+                  sendSms();
                   contactController.contacts.clear();
                   _controllerMessage.clear();
                   _controllerPeople.clear();
@@ -273,8 +259,7 @@ class _MyAppState extends State<MyHomePage> {
     if (contactController.contacts.isEmpty) {
       setState(() => _message = 'At Least 1 Person or Message Required');
     } else {
-      for (int i = 0; i <= contactController.contacts.length; i++)
-        _sendSMS(contactController.contacts[i]);
+      for (int i = 0; i <= contactController.contacts.length; i++) sendSms();
     }
   }
 }

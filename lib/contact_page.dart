@@ -2,12 +2,14 @@ import 'package:fast_contacts/fast_contacts.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:smssender/add_data_to_group.dart';
 import 'package:smssender/main.dart';
 
 import 'controllerpage.dart';
 
 class ContactPage extends StatefulWidget {
-  ContactPage({Key? key}) : super(key: key);
+  int index1;
+  ContactPage({Key? key, required this.index1}) : super(key: key);
   final ContactController contactController = Get.find();
 
   @override
@@ -26,12 +28,7 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MyHomePage(),
-            ),
-          );
+          Navigator.pop(context);
         },
       ),
       body: SafeArea(
@@ -52,7 +49,9 @@ class _ContactPageState extends State<ContactPage> {
                               .contains(contact.phones[0])) {
                             print('Number already added');
                           } else {
-                            widget.contactController.add(contact.phones[0]);
+                            widget
+                                .contactController.allgroup[widget.index1].list
+                                .add(contact.phones[0]);
 
                             print(contact.phones[0] + ' added');
                           }

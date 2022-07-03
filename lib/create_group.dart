@@ -1,9 +1,14 @@
 import 'dart:io';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:smssender/add_data_to_group.dart';
+import 'package:smssender/build.dart';
+import 'package:smssender/controllerpage.dart';
 import 'package:smssender/model/groupmodel.dart';
 import 'package:excel_to_json/excel_to_json.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Creategroup extends StatefulWidget {
   @override
@@ -11,32 +16,33 @@ class Creategroup extends StatefulWidget {
 }
 
 class _CreategroupState extends State<Creategroup> {
-  List<GroupModel> allgroup = [];
+  final ContactController contactController = Get.put(ContactController());
+  String? drowpDownvalue;
   String? contents;
-  void addGroupData(GroupModel model) {
+  void addGroupData(GroupModel model, String name) {
     setState(() {
-      allgroup.add(model);
+      contactController.allgroup.add(model);
+      contactController.dropdownitem.add(name);
     });
   }
 
-  Future<String?> readTable() async {
-    try {
-      final file = File(GetStorage().read('excelFile'));
+  String listlength() {
+    return contactController.allgroup.join();
+  }
 
-      // Read the file
-      contents = await file.readAsString();
-      print(contents);
-      return contents;
-    } catch (e) {
-      // If we encounter an error, return empty string
-      return "";
-    }
+  Future<String> getFilePath() async {
+    Directory appDocumentsDirectory =
+        await getApplicationDocumentsDirectory(); // 1
+    String appDocumentsPath = appDocumentsDirectory.path; // 2
+    String filePath = '$appDocumentsPath/demoTextFile.txt'; // 3
+
+    return filePath;
   }
 
   Future takeExcelFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
-      allowedExtensions: ['XLS', 'XLSX', 'XLSM', 'XLSB'],
+      allowedExtensions: ['csv'],
     );
 
     if (result != null) {
@@ -56,7 +62,7 @@ class _CreategroupState extends State<Creategroup> {
         child: Column(
           children: [
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Column(
                 children: [
                   TextField(
@@ -68,20 +74,55 @@ class _CreategroupState extends State<Creategroup> {
                   ),
                   ElevatedButton(
                       onPressed: () {
-                        addGroupData(
-                          GroupModel(name: groupnameController.text, list: []),
-                        );
+                        if (contactController.dropdownitem
+                            .contains(groupnameController.text)) {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(groupnameController.text)));
+                        } else {
+                          addGroupData(
+                              GroupModel(
+                                  name: groupnameController.text, list: []),
+                              groupnameController.text);
+                          print(listlength());
+                        }
                       },
                       child: Text('add')),
                   SizedBox(
                     height: 40,
                   ),
                   ElevatedButton(
-                      onPressed: () {
-                        takeExcelFile();
-                        readTable();
+                    onPressed: () {
+                      takeExcelFile();
+                    },
+                    child: Text('add excel'),
+                  ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                  Container(
+                    color: Colors.teal,
+                    child: DropdownButton<String>(
+                      value: drowpDownvalue,
+                      style: TextStyle(color: Colors.red),
+                      items:
+                          contactController.dropdownitem.map((dynamic value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          drowpDownvalue = value;
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Builda(value: value!),
+                              ));
+                        });
                       },
-                      child: Text('add excel')),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -92,17 +133,23 @@ class _CreategroupState extends State<Creategroup> {
               flex: 2,
               child: SizedBox(
                 child: ListView.builder(
-                  itemCount: allgroup.length,
+                  itemCount: contactController.allgroup.length,
                   itemBuilder: (BuildContext context, int index) {
                     return Card(
                         elevation: 2,
-                        child: GestureDetector(
-                          onTap: () {},
-                          child: ListTile(
-                            title: Text(allgroup[index].name),
-                            subtitle:
-                                Text(allgroup[index].list.length.toString()),
-                          ),
+                        child: ListTile(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddDatatoGroup(index1: index),
+                                ));
+                          },
+                          title: Text(contactController.allgroup[index].name),
+                          subtitle: Text(contactController
+                              .allgroup[index].list.length
+                              .toString()),
                         ));
                   },
                 ),
