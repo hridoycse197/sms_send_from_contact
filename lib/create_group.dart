@@ -26,20 +26,7 @@ class _CreategroupState extends State<Creategroup> {
     });
   }
 
-  String listlength() {
-    return contactController.allgroup.join();
-  }
-
-  Future<String> getFilePath() async {
-    Directory appDocumentsDirectory =
-        await getApplicationDocumentsDirectory(); // 1
-    String appDocumentsPath = appDocumentsDirectory.path; // 2
-    String filePath = '$appDocumentsPath/demoTextFile.txt'; // 3
-
-    return filePath;
-  }
-
-  Future takeExcelFile() async {
+  Future takeCSV() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['csv'],
@@ -83,7 +70,6 @@ class _CreategroupState extends State<Creategroup> {
                               GroupModel(
                                   name: groupnameController.text, list: []),
                               groupnameController.text);
-                          print(listlength());
                         }
                       },
                       child: Text('add')),
@@ -92,7 +78,7 @@ class _CreategroupState extends State<Creategroup> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      takeExcelFile();
+                      takeCSV();
                     },
                     child: Text('add excel'),
                   ),
